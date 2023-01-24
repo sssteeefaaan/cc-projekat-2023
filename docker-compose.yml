@@ -1,0 +1,213 @@
+version: '3.8'
+
+volumes:
+  uns-data:
+  ftn-data:
+  pmf-data:
+  pravni-data:
+
+networks:
+  uns-network:
+    driver: bridge
+  ftn-network:
+    driver: bridge
+  pmf-network:
+    driver: bridge
+  pravni-network:
+    driver: bridge
+  inter-network:
+    driver: bridge
+
+services:
+
+  uns-app:
+    build:
+      context: ./uns-app
+      args:
+        DOCKER_IMAGE_VERSION: ${NODE_IMAGE_VERSION:-19.4.0}
+    volumes:
+      - ./uns-app/app:/app
+      - /app/node_modules
+    ports:
+      - ${UNS_APP_PORT:-0.0.0.0:9999}:8000
+    restart: unless-stopped
+    networks:
+      - uns-network
+      - inter-network
+    environment:
+      SERVER_PORT: 8000
+      DATABASE_URL: mongodb://uns-database:27017/uns
+      DATABASE_USER: ${MONGO_USER:-admin}
+      DATABASE_PASSWORD: ${MONGO_PASSWORD:-admin}
+      DATABASE_DB: ${UNS_DATABASE_NAME:-uns}
+    depends_on:
+      uns-database:
+        condition: service_healthy
+    links:
+      - uns-database
+
+  uns-database:
+    image: mongo:${MONGO_IMAGE_VERSION:-6.0.3}
+    restart: unless-stopped
+    networks:
+      - uns-network
+    ports:
+      - ${UNS_DATABASE_PORT:-0.0.0.0:27017}:27017
+    volumes:
+      - uns-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin}
+      MONGO_INITDB_DATABASE: ${UNS_DATABASE_NAME:-uns}
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet | grep 1
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: none
+
+  ftn-app:
+    build:
+      context: ./ftn-app
+      args:
+        DOCKER_IMAGE_VERSION: ${FTN_APP_DOCKER_IMAGE_VERSION:-3.11-slim}
+    volumes:
+      - ./ftn-app/app:/app
+    ports:
+      - ${FTN_APP_PORT:-0.0.0.0:9998}:8000
+    restart: unless-stopped
+    networks:
+      - ftn-network
+      - inter-network
+    environment:
+      SERVER_PORT: 0.0.0.0:8000
+      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
+      DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@admin.com}
+      DATABASE_DB_NAME: ${FTN_POSTGRES_DB_NAME:-ftn}
+      DATABASE_DB_USER: ${POSTGRES_USER:-admin}
+      DATABASE_DB_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      DATABASE_DB_HOST: ftn-database
+      DATABASE_DB_PORT: 5432
+    depends_on:
+      ftn-database:
+        condition: service_healthy
+
+  ftn-database:
+    image: postgres:${FTN_DATABASE_IMAGE_VERSION:-15.1-alpine}
+    volumes:
+      - ftn-data:/var/lib/postgresql/data
+    ports:
+      - ${FTN_DATABASE_PORT:-0.0.0.0:5554}:5432
+    networks:
+      - ftn-network
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: ${FTN_POSTGRES_DB_NAME:-ftn}
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER:-admin} -d ${FTN_POSTGRES_DB_NAME:-ftn}
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: none
+
+  pmf-app:
+    build:
+      context: ./pmf-app
+      args:
+        DOCKER_IMAGE_VERSION: ${PMF_APP_DOCKER_IMAGE_VERSION:-3.11-slim}
+    volumes:
+      - ./pmf-app/app:/app
+    ports:
+      - ${PMF_APP_PORT:-0.0.0.0:9997}:8000
+    restart: unless-stopped
+    networks:
+      - pmf-network
+      - inter-network
+    environment:
+      SERVER_PORT: 0.0.0.0:8000
+      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
+      DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@admin.com}
+      DATABASE_DB_NAME: ${PMF_POSTGRES_DB_NAME:-pmf}
+      DATABASE_DB_USER: ${POSTGRES_USER:-admin}
+      DATABASE_DB_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      DATABASE_DB_HOST: pmf-database
+      DATABASE_DB_PORT: 5432
+    depends_on:
+      pmf-database:
+        condition: service_healthy
+
+  pmf-database:
+    image: postgres:${PMF_DATABASE_IMAGE_VERSION:-15.1-alpine}
+    volumes:
+      - pmf-data:/var/lib/postgresql/data
+    ports:
+      - ${PMF_DATABASE_PORT:-0.0.0.0:5553}:5432
+    networks:
+      - pmf-network
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: ${PMF_POSTGRES_DB_NAME:-pmf}
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER:-admin} -d ${PMF_POSTGRES_DB_NAME:-pmf}
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: none
+
+  pravni-app:
+    build:
+      context: ./ftn-app
+      args:
+        DOCKER_IMAGE_VERSION: ${PRAVNI_APP_DOCKER_IMAGE_VERSION:-3.11-slim}
+    volumes:
+      - ./pravni-app/app:/app
+    ports:
+      - ${PRAVNI_APP_PORT:-0.0.0.0:9996}:8000
+    restart: unless-stopped
+    networks:
+      - pravni-network
+      - inter-network
+    environment:
+      SERVER_PORT: 0.0.0.0:8000
+      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
+      DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@admin.com}
+      DATABASE_DB_NAME: ${PRAVNI_POSTGRES_DB_NAME:-pravni}
+      DATABASE_DB_USER: ${POSTGRES_USER:-admin}
+      DATABASE_DB_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      DATABASE_DB_HOST: pravni-database
+      DATABASE_DB_PORT: 5432
+    depends_on:
+      pravni-database:
+        condition: service_healthy
+
+  pravni-database:
+    image: postgres:${PRAVNI_DATABASE_IMAGE_VERSION:-15.1-alpine}
+    volumes:
+      - pravni-data:/var/lib/postgresql/data
+    ports:
+      - ${PRAVNI_DATABASE_PORT:-0.0.0.0:5552}:5432
+    networks:
+      - pravni-network
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: ${PRAVNI_POSTGRES_DB_NAME:-pravni}
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER:-admin} -d ${PRAVNI_POSTGRES_DB_NAME:-pravni}
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: none
