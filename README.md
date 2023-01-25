@@ -28,13 +28,13 @@
 
 <h2>Detalji</h2>
 <ul>
-  <li>Ukoliko želite da se povežete na MongoDB Replica Set koristeći Compass sa host mašine, neophodno je:
+  <li>Ukoliko želite da se povežete na <strong>MongoDB Replica Set</strong> koristeći <strong>Compass</strong> sa host mašine, neophodno je:
     <ol>
-      <li>Pronaći u okviru konfiguracionog fajla imena host mašina <code>./load-balancer/mongo/rs-init.sh</code>(Ovo su imena servisa koji su deo replika seta), kao i ime seta replika
+      <li>Pronaći u okviru konfiguracionog fajla <code>./load-balancer/mongo/rs-init.sh</code> imena host mašina (Ovo su imena servisa koji su deo replika seta), kao i ime seta replika. Trenutno je konfigurisano kao <code>uns-database-01</code>, <code>uns-database-02</code> i replika set <code>uns-replicaset</code>.
       </li>
-      <li>U okviru Vaše host mašine, u fajlu /etc/hosts, neophodno je dodati ova imena za adresu 127.0.0.1 (Kažemo host mašini kako da prepozna članove klastera, a s obzirom da je sve na lokalnoj mašini, oni su dostupni na localhost:{mapiran port})
+      <li>U okviru Vaše host mašine, u fajlu <strong>/etc/hosts</strong>, neophodno je dodati identifikovana imena za adresu <code>127.0.0.1</code> (Ovim kažemo host mašini kako da prepozna članove klastera, a s obzirom da je sve na lokalnoj mašini, oni su dostupni na localhost:{mapiran port})
       </li>
-      <li>Formirati konekcioni string za Compass kao <code>mongodb://localhost:{port1},localhost{port2}/?replicaSet={ime replike}</code> (Za konfiguraciju bilo kakve autentifikacije, da to podrazumeva username i password, neophodno je prilagoditi klaster da radi sa ključevima, kako bi čvorovi komunicirali, te je za ovo dodatno potrebno proučiti dokumentaciju)
+      <li>Formirati konekcioni string za <string>Compass</string> kao <code>mongodb://localhost:{port1},localhost:{port2}/?replicaSet={ime replike}</code> (Za konfiguraciju bilo kakve autentifikacije, a to podrazumeva username i password, neophodno je prilagoditi klaster da radi sa ključevima, kako bi čvorovi komunicirali, te je za ovo dodatno potrebno proučiti <a href="https://www.mongodb.com/docs/manual/tutorial/deploy-replica-set-with-keyfile-access-control/">dokumentaciju</a>)
       </li>
     </ol>
   </li>
