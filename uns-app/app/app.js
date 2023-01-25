@@ -3,12 +3,14 @@ const express = require("express")
 const path = require("path")
 const env = process.env
 const ejs = require("ejs")
+const {newRequest} = require("./utils/counter")
 
 // Variables
 const port = env["SERVER_PORT"] || 8000
 
 // Server instance
 const app = express()
+app.use(newRequest)
 app.use(express.json())
 
 // Views engine setup 'EJS'

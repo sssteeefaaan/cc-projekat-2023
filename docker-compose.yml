@@ -1,7 +1,8 @@
 version: '3.8'
 
 volumes:
-  uns-data:
+  uns-data-01:
+  uns-data-02:
   ftn-data:
   pmf-data:
   pravni-data:
@@ -20,33 +21,65 @@ networks:
 
 services:
 
+  load-balancer:
+    image: nginx:${NGINX_IMAGE_VERSION:-1.23.3-alpine-slim}
+    ports:
+      - ${UNS_APP_PORT:-0.0.0.0:9999}:5100
+    volumes:
+      - ./load-balancer/conf.d:/etc/nginx/conf.d
+    environment:
+      UNS_APP_1: ${COMPOSE_PROJECT_NAME}_uns-app_1:8000
+      UNS_APP_2: ${COMPOSE_PROJECT_NAME}_uns-app_2:8000
+      NGINX_APP_LISTEN_PORT: 5100
+      UNS_DB_1: uns-database-01:27017
+      UNS_DB_2: uns-database-02:27017
+      NGINX_DB_LISTEN_PORT: 5101
+    restart: always
+    networks:
+      - uns-network
+      - inter-network
+    links:
+      - uns-database-01
+      - uns-database-02
+    depends_on:
+      uns-app:
+        condition: service_healthy
+    command: /bin/sh -c "envsubst < /etc/nginx/conf.d/nginx.template > /etc/nginx/conf.d/nginx.conf && nginx -g 'daemon off;'"
   uns-app:
     build:
       context: ./uns-app
       args:
-        DOCKER_IMAGE_VERSION: ${NODE_IMAGE_VERSION:-19.4.0}
+        DOCKER_IMAGE_VERSION: ${NODE_IMAGE_VERSION:-19.4.0-alpine}
     volumes:
       - ./uns-app/app:/app
       - /app/node_modules
-    ports:
-      - ${UNS_APP_PORT:-0.0.0.0:9999}:8000
     restart: unless-stopped
     networks:
       - uns-network
       - inter-network
     environment:
       SERVER_PORT: 8000
-      DATABASE_URL: mongodb://uns-database:27017/uns
+      DATABASE_URL: mongodb://uns-database-01:27017,uns-database-02:27017/uns
       DATABASE_USER: ${MONGO_USER:-admin}
       DATABASE_PASSWORD: ${MONGO_PASSWORD:-admin}
       DATABASE_DB: ${UNS_DATABASE_NAME:-uns}
+      MONGO_REPLICA_SET_NAME: ${MONGO_REPLICA_SET_NAME:-uns-replicaset}
     depends_on:
-      uns-database:
+      uns-database-01:
+        condition: service_healthy
+      uns-database-02:
         condition: service_healthy
     links:
-      - uns-database
+      - uns-database-01
+      - uns-database-02
+    healthcheck:
+      test: node healthcheck.js
+      interval: 10s
+      timeout: 2s
+      start_period: 15s
+    scale: 2
 
-  uns-database:
+  uns-database-01:
     image: mongo:${MONGO_IMAGE_VERSION:-6.0.3}
     restart: unless-stopped
     networks:
@@ -54,19 +87,48 @@ services:
     ports:
       - ${UNS_DATABASE_PORT:-0.0.0.0:27017}:27017
     volumes:
-      - uns-data:/data/db
+      - uns-data-01:/data/db
+      - ./load-balancer/mongo/:/scripts/
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin}
       MONGO_INITDB_DATABASE: ${UNS_DATABASE_NAME:-uns}
+      MONGO_REPLICA_SET_NAME: ${MONGO_REPLICA_SET_NAME:-uns-replicaset}
+    entrypoint: /scripts/start.sh
+    links:
+      - uns-database-02
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh --quiet | grep 1
       interval: 10s
       timeout: 10s
-      retries: 3
+      retries: 5
       start_period: 20s
-    logging:
-      driver: none
+    # logging:
+    #   driver: none
+
+  uns-database-02:
+    image: mongo:${MONGO_IMAGE_VERSION:-6.0.3}
+    restart: unless-stopped
+    networks:
+      - uns-network
+    volumes:
+      - uns-data-02:/data/db
+    ports:
+      - 0.0.0.0:27018:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin}
+      MONGO_INITDB_DATABASE: ${UNS_DATABASE_NAME:-uns}
+      MONGO_REPLICA_SET_NAME: ${MONGO_REPLICA_SET_NAME:-uns-replicaset}
+    command: /bin/bash -c "mongod --syslog --bind_ip_all --replSet ${MONGO_REPLICA_SET_NAME:-uns-replicaset}"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet | grep 1
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    # logging:
+    #   driver: none
 
   ftn-app:
     build:

@@ -1,0 +1,11 @@
+upstream uns-api {
+    server ${UNS_APP_1} weight=2;
+    server ${UNS_APP_2} weight=3;
+}
+
+server {
+    listen ${NGINX_APP_LISTEN_PORT};
+    location / {
+        proxy_pass http://uns-api;
+    }
+}
