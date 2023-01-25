@@ -83,6 +83,7 @@ services:
       - inter-network
     environment:
       SERVER_PORT: 0.0.0.0:8000
+      DJANGO_ADMINS_FILE_PATH: ${DJANGO_ADMINS_FILE_PATH:-/admins.txt}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
       DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@admin.com}
@@ -91,6 +92,12 @@ services:
       DATABASE_DB_PASSWORD: ${POSTGRES_PASSWORD:-admin}
       DATABASE_DB_HOST: ftn-database
       DATABASE_DB_PORT: 5432
+      FACULTY_CODE: FTN
+      FACULTY_NAME: Faculty of technical sciences
+      FACULTY_PHONE_NUMBER: 021450810
+      FACULTY_ADDRESS_POSTAL_CODE: 21102
+      FACULTY_ADDRESS_NAME: Trg Dositeja Obradovića 6
+      FACULTY_ADDRESS_MUNICIPALITY: Novi Sad
     depends_on:
       ftn-database:
         condition: service_healthy
@@ -131,6 +138,7 @@ services:
       - inter-network
     environment:
       SERVER_PORT: 0.0.0.0:8000
+      DJANGO_ADMINS_FILE_PATH: ${DJANGO_ADMINS_FILE_PATH:-/admins.txt}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
       DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@admin.com}
@@ -139,6 +147,12 @@ services:
       DATABASE_DB_PASSWORD: ${POSTGRES_PASSWORD:-admin}
       DATABASE_DB_HOST: pmf-database
       DATABASE_DB_PORT: 5432
+      FACULTY_CODE: PMF
+      FACULTY_NAME: Faculty of mathematics and natural sciences
+      FACULTY_PHONE_NUMBER: 0214852712
+      FACULTY_ADDRESS_POSTAL_CODE: 21102
+      FACULTY_ADDRESS_NAME: Trg Dositeja Obradovića 3
+      FACULTY_ADDRESS_MUNICIPALITY: Novi Sad
     depends_on:
       pmf-database:
         condition: service_healthy
@@ -179,6 +193,7 @@ services:
       - inter-network
     environment:
       SERVER_PORT: 0.0.0.0:8000
+      DJANGO_ADMINS_FILE_PATH: ${DJANGO_ADMINS_FILE_PATH:-/admins.txt}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
       DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@admin.com}
@@ -187,6 +202,12 @@ services:
       DATABASE_DB_PASSWORD: ${POSTGRES_PASSWORD:-admin}
       DATABASE_DB_HOST: pravni-database
       DATABASE_DB_PORT: 5432
+      FACULTY_CODE: PRAVNI
+      FACULTY_NAME: Faculty of law
+      FACULTY_PHONE_NUMBER: 0214853097
+      FACULTY_ADDRESS_POSTAL_CODE: 21102
+      FACULTY_ADDRESS_NAME: Trg Dositeja Obradovića 1
+      FACULTY_ADDRESS_MUNICIPALITY: Novi Sad
     depends_on:
       pravni-database:
         condition: service_healthy
