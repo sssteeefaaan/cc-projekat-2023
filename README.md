@@ -28,6 +28,10 @@
 
 <h2>Detalji</h2>
 <ul>
+  <li>UNS aplikacija je pisana u Node.js-u, koristeći između ostalog, Express i EJS. Ova aplikacija je skalirana na dve replike, koje su uz pomoć Nginx load-balancer-a dostupne sa host mašine na adresi <a href="http://localhost:9999"><code>http://localhost:9999</code></a>.</li>
+  <li>Aplikacije FTN, PMF i Pravni su pisane u Python-u, koristeći Django framework i dostupne su na adresama <a href="http://localhost:9998"><code>http://localhost:9998</code></a>, <a href="http://localhost:9997"><code>http://localhost:9997</code></a>, <a href="http://localhost:9996"><code>http://localhost:9996</code></a> respektivno. </li>
+  <li>FTN, PMF i Pravni koriste Postgres bazu podataka za skladištenje modela</li>
+  <li>UNS aplikacija koristi MongoDB bazu podataka, koja je pokrenuta u Mongo Replika Setu sa jednim primarom i sekundarom. Za povezivanje na klater sa host mašine koristeći Compas, neophodno je konfigurisati host mašinu. (Opis dat u nastavku)</li>
   <li>Ukoliko želite da se povežete na <strong>MongoDB Replica Set</strong> koristeći <strong>Compass</strong> sa host mašine, neophodno je:
     <ol>
       <li>Pronaći u okviru konfiguracionog fajla <code>./load-balancer/mongo/rs-init.sh</code> imena host mašina (Ovo su imena servisa koji su deo replika seta), kao i ime seta replika. Trenutno je konfigurisano kao <code>uns-database-01</code>, <code>uns-database-02</code> i replika set <code>uns-replicaset</code>.
