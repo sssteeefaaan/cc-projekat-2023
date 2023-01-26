@@ -24,7 +24,7 @@ services:
   load-balancer:
     image: nginx:${NGINX_IMAGE_VERSION:-1.23.3-alpine-slim}
     ports:
-      - ${UNS_APP_PORT:-0.0.0.0:9999}:5100
+      - 0.0.0.0:${UNS_APP_PORT:-9999}:5100
     volumes:
       - ./load-balancer/conf.d:/etc/nginx/conf.d
     environment:
@@ -43,7 +43,7 @@ services:
       - uns-database-02
     depends_on:
       uns-app:
-        condition: service_healthy
+          condition: service_healthy
     command: /bin/sh -c "envsubst < /etc/nginx/conf.d/nginx.template > /etc/nginx/conf.d/nginx.conf && nginx -g 'daemon off;'"
   uns-app:
     build:
@@ -53,6 +53,7 @@ services:
     volumes:
       - ./uns-app/app:/app
       - /app/node_modules
+      - ./uploads:/app/uploads:z
     restart: unless-stopped
     networks:
       - uns-network
@@ -64,6 +65,9 @@ services:
       DATABASE_PASSWORD: ${MONGO_PASSWORD:-admin}
       DATABASE_DB: ${UNS_DATABASE_NAME:-uns}
       MONGO_REPLICA_SET_NAME: ${MONGO_REPLICA_SET_NAME:-uns-replicaset}
+      FTN_URL: http://localhost:%{FTN_APP_PORT:-9998}
+      PMF_URL: http://localhost:%{PMF_APP_PORT:-9997}
+      PRAVNI_URL: http://localhost:%{PRAVNI_APP_PORT:-9996}
     depends_on:
       uns-database-01:
         condition: service_healthy
@@ -85,7 +89,7 @@ services:
     networks:
       - uns-network
     ports:
-      - ${UNS_DATABASE_PORT:-0.0.0.0:27017}:27017
+      - 0.0.0.0:${UNS_DATABASE_PORT:-27017}:27017
     volumes:
       - uns-data-01:/data/db
       - ./load-balancer/mongo/:/scripts/
@@ -103,8 +107,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 20s
-    # logging:
-    #   driver: none
+
 
   uns-database-02:
     image: mongo:${MONGO_IMAGE_VERSION:-6.0.3}
@@ -127,18 +130,18 @@ services:
       timeout: 10s
       retries: 5
       start_period: 20s
-    # logging:
-    #   driver: none
+
 
   ftn-app:
     build:
-      context: ./ftn-app
+      context: ./sservices
       args:
         DOCKER_IMAGE_VERSION: ${FTN_APP_DOCKER_IMAGE_VERSION:-3.11-slim}
     volumes:
-      - ./ftn-app/app:/app
+      - ./sservices/app:/app:z
+      - ./uploads:/app/uploads:z
     ports:
-      - ${FTN_APP_PORT:-0.0.0.0:9998}:8000
+      - 0.0.0.0:${FTN_APP_PORT:-9998}:8000
     restart: unless-stopped
     networks:
       - ftn-network
@@ -160,6 +163,9 @@ services:
       FACULTY_ADDRESS_POSTAL_CODE: 21102
       FACULTY_ADDRESS_NAME: Trg Dositeja Obradovića 6
       FACULTY_ADDRESS_MUNICIPALITY: Novi Sad
+      UPLOADS_FILE_PATH: ftn
+      PROFESSOR_REGISTER_URL: http://uns-app:8000/uns/register-professor
+      STUDENT_REGISTER_URL: http://uns-app:8000/uns/register-student
     depends_on:
       ftn-database:
         condition: service_healthy
@@ -169,7 +175,7 @@ services:
     volumes:
       - ftn-data:/var/lib/postgresql/data
     ports:
-      - ${FTN_DATABASE_PORT:-0.0.0.0:5554}:5432
+      - 0.0.0.0:${FTN_DATABASE_PORT:-5554}:5432
     networks:
       - ftn-network
     environment:
@@ -187,13 +193,14 @@ services:
 
   pmf-app:
     build:
-      context: ./pmf-app
+      context: ./sservices
       args:
         DOCKER_IMAGE_VERSION: ${PMF_APP_DOCKER_IMAGE_VERSION:-3.11-slim}
     volumes:
-      - ./pmf-app/app:/app
+      - ./sservices/app:/app:z
+      - ./uploads:/app/uploads:z
     ports:
-      - ${PMF_APP_PORT:-0.0.0.0:9997}:8000
+      - 0.0.0.0:${PMF_APP_PORT:-9997}:8000
     restart: unless-stopped
     networks:
       - pmf-network
@@ -215,6 +222,9 @@ services:
       FACULTY_ADDRESS_POSTAL_CODE: 21102
       FACULTY_ADDRESS_NAME: Trg Dositeja Obradovića 3
       FACULTY_ADDRESS_MUNICIPALITY: Novi Sad
+      UPLOADS_FILE_PATH: pmf
+      PROFESSOR_REGISTER_URL: http://uns-app:8000/uns/register-professor
+      STUDENT_REGISTER_URL: http://uns-app:8000/uns/register-student
     depends_on:
       pmf-database:
         condition: service_healthy
@@ -224,7 +234,7 @@ services:
     volumes:
       - pmf-data:/var/lib/postgresql/data
     ports:
-      - ${PMF_DATABASE_PORT:-0.0.0.0:5553}:5432
+      - 0.0.0.0:${PMF_DATABASE_PORT:-5553}:5432
     networks:
       - pmf-network
     environment:
@@ -242,13 +252,14 @@ services:
 
   pravni-app:
     build:
-      context: ./ftn-app
+      context: ./sservices
       args:
         DOCKER_IMAGE_VERSION: ${PRAVNI_APP_DOCKER_IMAGE_VERSION:-3.11-slim}
     volumes:
-      - ./pravni-app/app:/app
+      - ./sservices/app:/app:z
+      - ./uploads:/app/uploads:z
     ports:
-      - ${PRAVNI_APP_PORT:-0.0.0.0:9996}:8000
+      - 0.0.0.0:${PRAVNI_APP_PORT:-9996}:8000
     restart: unless-stopped
     networks:
       - pravni-network
@@ -270,6 +281,9 @@ services:
       FACULTY_ADDRESS_POSTAL_CODE: 21102
       FACULTY_ADDRESS_NAME: Trg Dositeja Obradovića 1
       FACULTY_ADDRESS_MUNICIPALITY: Novi Sad
+      UPLOADS_FILE_PATH: pravni
+      PROFESSOR_REGISTER_URL: http://uns-app:8000/uns/register-professor
+      STUDENT_REGISTER_URL: http://uns-app:8000/uns/register-student
     depends_on:
       pravni-database:
         condition: service_healthy
@@ -279,7 +293,7 @@ services:
     volumes:
       - pravni-data:/var/lib/postgresql/data
     ports:
-      - ${PRAVNI_DATABASE_PORT:-0.0.0.0:5552}:5432
+      - 0.0.0.0:${PRAVNI_DATABASE_PORT:-5552}:5432
     networks:
       - pravni-network
     environment:

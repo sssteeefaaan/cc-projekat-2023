@@ -1,63 +1,74 @@
 const router = require("express").Router()
 const {registerStudent, registerProfessor} = require("../utils/register")
-const {loginStudent, loginProfessor} = require("../utils/login")
+const {Professor} = require("../models/professor")
+const {Student} = require("../models/student")
+const env = process.env
 
-router.get('/', async (req, res) => {
-    res.render('uns/index')
+router.get('/', async(req, res)=>{
+    res.redirect('/uns/0')
 })
 
-router.post("/register", async(req, res) => {
+router.get('/:nav', async (req, res) => {
+    let nav = req.params['nav']
+    let items = []
+    let professorListLink = "/uns/0"
+    let studentListLink = "/uns/1"
+    let facultyPortals = {
+        'FTN': env["FTN_LINK"] || "http://localhost:9998/",
+        'PMF': env["PMF_LINK"] || "http://localhost:9997/",
+        'PRAVNI': env["PRAVNI_LINK"] || "http://localhost:9996/"
+    }
+    if(nav == '0'){
+        items = await Professor.find()
+    }else if(nav == '1'){
+        items = await Student.find()
+    }else
+        return res.render('error')
+
+    res.render('uns/index', { nav, items, facultyPortals, professorListLink, studentListLink })
+})
+
+router.post("/register-professor", async(req, res)=>{
     try{
-        const content = req.body
-        let result;
-        switch (content.type){
-            case("student"):{
-                result = await registerStudent(content.data)
-                break
-            }
-            case("professor"):{
-                result = await registerProfessor(content.data)
-                break
-            }
-            default: {
-                result.message = `Unknown registration type '${content.type}'`
+        const result = { status:200, errors: Array() }
+        const data = req.body
+        if (!data){
+            result.status = 400
+            result.errors = Array({ server: ["Empty body!"] })
+        }else{
+            result.errors += await registerProfessor(data)
+            if (result.errors)
                 result.status = 400
-            }
         }
-        return res.status(result.status).send({message: result.message})
+        console.log(result)
+        res.status(result.status).send(result)
     }catch(e){
         console.log(e)
-        res.send({
-            status: "Failed",
-            reason: e
-        }).status(500)
+        res.status(500).send({
+            errors: [e]
+        })
     }
 })
 
-router.post("/login", async(req, res)=>{
+router.post("/register-student", async(req, res)=>{
     try{
-        const content = req.body
-        let result = { message: null, status: null, content: null}
-        switch (content.type){
-            case("student"):{
-                result = await loginStudent(content.data)
-                break
-            }
-            case("professor"):{
-                result = await loginProfessor(content.data)
-                break
-            }
-            default: {
-                result.message = `Unknown login type '${content.type}'`
+        const result = { status:200, errors:[] }
+        const data = req.body
+        if (!data){
+            result.status = 400
+            result.errors = [{ server: ["Empty body!"] }]
+        }else{
+            result.errors += await registerStudent(data)
+            if (result.errors)
                 result.status = 400
-                result.content = null
-            }
         }
-        return res.status(result.status).send({ message: result.message, content: result.content })
-
+        console.log(result)
+        res.status(result.status).send(result)
     }catch(e){
         console.log(e)
-        res.status(500).send({message: "Failed", reason: e})
+        res.status(500).send({
+            errors: [e]
+        })
     }
 })
 

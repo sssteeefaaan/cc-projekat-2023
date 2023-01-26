@@ -1,9 +1,9 @@
 const {getClient} = require("../utils/database")
-const {errors} = require("./studentErrors")
+const {errors} = require("./professorErrors")
 const bcrypt = require('bcrypt')
 const SALT_WORK_FACTOR = parseInt(process.env["SALT_WORK_FACTOR"] || '10')
 
-const studentSchema = new getClient().Schema({
+const professorSchema = new getClient().Schema({
     firstName: {
         type: String,
         minLength: [1, errors.firstName.minLength],
@@ -15,26 +15,6 @@ const studentSchema = new getClient().Schema({
         minLength: [1, errors.lastName.minLength],
         trim: true,
         required: [true, errors.lastName.required]
-    },
-    index: {
-        type: String,
-        trim: true,
-        required: [true, errors.index.required],
-        unique: [true, errors.index.unique],
-        index: true,
-        validate: {
-            validator: v => /[a-z0-9\-]+/.test(v),
-            message: errors.index.invalid
-        },
-    },
-    faculty: {
-        type: String,
-        required: [true, errors.faculty.required],
-        uppercase: true,
-        enum: {
-            values: ["FTN", "PMF", "PRAVNI"],
-            message: errors.faculty.enum
-        }
     },
     email: {
         type: String,
@@ -102,9 +82,14 @@ const studentSchema = new getClient().Schema({
     image: {
         type: String
     },
-    birthDate: {
-        type: Date,
-        required: [true, errors.birthDate.required]
+    faculty: {
+        type: String,
+        required: [true, errors.faculty.required],
+        uppercase: true,
+        enum: {
+            values: ["FTN", "PMF", "PRAVNI"],
+            message: errors.faculty.enum
+        }
     },
     address: {
         type: {
@@ -124,72 +109,10 @@ const studentSchema = new getClient().Schema({
             }
         },
         required: [true, errors.address.required]
-    },
-    parent: {
-        type: {
-            firstName: {
-                type: String,
-                trim: true,
-                required: [true, errors.parent.firstName.required]
-            },
-            lastName: {
-                type: String,
-                trim: true,
-                required: [true, errors.parent.lastName.required]
-            },
-            umcn: {
-                type: String,
-                trim: true,
-                required: [true, errors.parent.umcn.required],
-                validate: {
-                    validator: v => /^[0-9]{13}$/.test(v),
-                    message: errors.parent.umcn.invalid
-                }
-            },
-            idCardNumber: {
-                type: String,
-                trim: true,
-                required: [true, errors.parent.idCardNumber.required],
-                validate: {
-                    validator: v =>/^[0-9]{8,10}$/.test(v),
-                    message: errors.parent.idCardNumber.invalid
-                }
-            },
-            phoneNumber: {
-                type: String,
-                trim: true,
-                required: [true, errors.parent.phoneNumber.required],
-                validate: {
-                    validator: v => /^\+?[0-9]{9,14}$/.test(v),
-                    message: errors.parent.phoneNumber.invalid
-                }
-            },
-            address: {
-                type:{
-                    postalCode: {
-                        type: Number,
-                        trim: true,
-                        required: [true, errors.parent.address.postalCode.required]
-                    },
-                    municipality: {
-                        type: String,
-                        trim: true,
-                        required: [true, errors.parent.address.municipality.required]
-                    },
-                    name: {
-                        type: String,
-                        trim: true,
-                        required: [true,errors.parent.address.name.required]
-                    }
-                },
-                required: [true, errors.parent.address.required]
-            }
-        },
-        required: [true, errors.parent.required]
-    },
+    }
 });
 
-studentSchema.pre('save', function(next) {
+professorSchema.pre('save', function(next) {
     const user = this;
 
     // only hash the password if it has been modified (or is new)
@@ -209,9 +132,9 @@ studentSchema.pre('save', function(next) {
     });
 });
 
-studentSchema.methods.comparePassword = async function(password) {
+professorSchema.methods.comparePassword = async function(password) {
    return await bcrypt.compare(password, this.password)
 }
 
-const Student = getClient().model("Student", studentSchema, "students")
-module.exports = { Student }
+const Professor = getClient().model("Professor", professorSchema, "professors")
+module.exports = { Professor }

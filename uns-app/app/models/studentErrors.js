@@ -45,6 +45,9 @@ const errors = {
         required: "Student's phone number cannot be empty!",
         invalid: "Please provide a valid phone number for the student!",
     },
+    birthDate:{
+        required: "Student's birth date cannot be empty!"
+    },
     address:{
         required: "Student's address information cannot be empty!",
         postalCode: {
