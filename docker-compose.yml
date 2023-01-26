@@ -160,6 +160,7 @@ services:
       UPLOADS_FILE_PATH: ftn
       PROFESSOR_REGISTER_URL: http://uns-app:8000/uns/register-professor
       STUDENT_REGISTER_URL: http://uns-app:8000/uns/register-student
+      UNS_PORTAL_URL: http://localhost:${UNS_APP_PORT:-9999}/
     depends_on:
       ftn-database:
         condition: service_healthy
@@ -216,6 +217,7 @@ services:
       UPLOADS_FILE_PATH: pmf
       PROFESSOR_REGISTER_URL: http://uns-app:8000/uns/register-professor
       STUDENT_REGISTER_URL: http://uns-app:8000/uns/register-student
+      UNS_PORTAL_URL: http://localhost:${UNS_APP_PORT:-9999}/
     depends_on:
       pmf-database:
         condition: service_healthy
@@ -272,6 +274,7 @@ services:
       UPLOADS_FILE_PATH: pravni
       PROFESSOR_REGISTER_URL: http://uns-app:8000/uns/register-professor
       STUDENT_REGISTER_URL: http://uns-app:8000/uns/register-student
+      UNS_PORTAL_URL: http://localhost:${UNS_APP_PORT:-9999}/
     depends_on:
       pravni-database:
         condition: service_healthy

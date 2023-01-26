@@ -22,7 +22,7 @@ def home(request, nav = '0'):
         )
     else:
         return redirect('error-page')
-    return render(request, 'home/index.html', data | dict(faculty_name=environ.get("FACULTY_NAME", "FACULTY_NAME ENV NOT SET!")))
+    return render(request, 'home/index.html', data | dict(faculty_name=environ.get("FACULTY_NAME", "FACULTY_NAME ENV NOT SET!"), uns_portal=environ.get("UNS_PORTAL_URL", "UNS_PORTAL_URL ENV NOT SET!")))
 
 def error(request):
     return render(request, 'home/error.html')
