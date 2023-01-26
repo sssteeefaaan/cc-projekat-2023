@@ -46,10 +46,7 @@ services:
           condition: service_healthy
     command: /bin/sh -c "envsubst < /etc/nginx/conf.d/nginx.template > /etc/nginx/conf.d/nginx.conf && nginx -g 'daemon off;'"
   uns-app:
-    build:
-      context: ./uns-app
-      args:
-        DOCKER_IMAGE_VERSION: ${NODE_IMAGE_VERSION:-19.4.0-alpine}
+    image: sssteeefkkke/cc-project-2023-node:latest
     volumes:
       - ./uns-app/app:/app
       - /app/node_modules
@@ -133,10 +130,7 @@ services:
 
 
   ftn-app:
-    build:
-      context: ./sservices
-      args:
-        DOCKER_IMAGE_VERSION: ${FTN_APP_DOCKER_IMAGE_VERSION:-3.11-slim}
+    image: sssteeefkkke/cc-project-2023-django:latest
     volumes:
       - ./sservices/app:/app:z
       - ./uploads:/app/uploads:z
@@ -192,10 +186,7 @@ services:
       driver: none
 
   pmf-app:
-    build:
-      context: ./sservices
-      args:
-        DOCKER_IMAGE_VERSION: ${PMF_APP_DOCKER_IMAGE_VERSION:-3.11-slim}
+    image: sssteeefkkke/cc-project-2023-django:latest
     volumes:
       - ./sservices/app:/app:z
       - ./uploads:/app/uploads:z
@@ -251,10 +242,7 @@ services:
       driver: none
 
   pravni-app:
-    build:
-      context: ./sservices
-      args:
-        DOCKER_IMAGE_VERSION: ${PRAVNI_APP_DOCKER_IMAGE_VERSION:-3.11-slim}
+    image: sssteeefkkke/cc-project-2023-django:latest
     volumes:
       - ./sservices/app:/app:z
       - ./uploads:/app/uploads:z
