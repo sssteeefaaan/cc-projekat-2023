@@ -1,0 +1,28 @@
+name: Docker Django Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build the Docker image
+      env:
+        DOCKER_USER: ${{secrets.DOCKER_USER}}
+      run: docker build ./sservices-app --build-arg DOCKER_IMAGE_VERSION=3.11-slim --tag $DOCKER_USER/cc-project-2023-django:latest
+    
+    - name: Docker login
+      env:
+        DOCKER_USER: ${{secrets.DOCKER_USER}}
+        DOCKER_TOKEN: ${{secrets.DOCKER_TOKEN}}
+      run: docker login -u $DOCKER_USER -p $DOCKER_TOKEN
+    
+    - name: Docker publish
+      run: docker push ${{secrets.DOCKER_USER}}/cc-project-2023-django:latest
