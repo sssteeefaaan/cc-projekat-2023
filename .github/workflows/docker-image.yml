@@ -13,11 +13,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build ./uns-app --build-arg DOCKER_IMAGE_VERSION=19.4.0-alpine --tag cc-project-2023:node_image
+      run: docker build ./uns-app --build-arg DOCKER_IMAGE_VERSION=19.4.0-alpine --tag cc_project_2023:node_image
     - name: Docker login
       env:
         DOCKER_USER: ${{secrets.DOCKER_USER}}
         DOCKER_TOKEN: ${{secrets.DOCKER_TOKEN}}
       run: docker login -u $DOCKER_USER -p $DOCKER_TOKEN
     - name: Docker publish
-      run: docker push ${{secrets.DOCKER_USER}}/cc-project-2023:node_image
+      run: docker push ${{secrets.DOCKER_USER}}/cc_project_2023:node_image
